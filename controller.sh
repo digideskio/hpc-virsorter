@@ -13,6 +13,7 @@ STEP_SIZE=1
 QUEUE="standard"
 JOB_NAME="virsorter"
 GROUP_NAME="bhurwitz"
+JOB_TYPE="htc_only"
 
 function HELP() {
   printf "Usage:\n  %s -i IN_DIR -o OUT_DIR\n\n" \ $(basename $0)
@@ -28,6 +29,7 @@ function HELP() {
   echo " -q QUEUE ($QUEUE)"
   echo " -c DB_CHOICE ($DB_CHOICE)"
   echo " -s STEP_SIZE ($STEP_SIZE)"
+  echo " -j JOB_TYPE ($JOB_TYPE)"
   echo " -a CUSTOM_PHAGE_SEQUENCE"
   echo ""
   exit 0
@@ -37,7 +39,7 @@ if [[ $# -lt 1 ]]; then
   HELP
 fi
 
-while getopts :a:c:d:g:i:n:o:q:s:h OPT; do
+while getopts :a:c:d:g:j:i:n:o:q:s:h OPT; do
   case $OPT in
     a)
       OPT_SEQ="$OPTARG"
@@ -50,6 +52,9 @@ while getopts :a:c:d:g:i:n:o:q:s:h OPT; do
       ;;
     g)
       GROUP_NAME="$OPTARG"
+      ;;
+    j)
+      JOB_TYPE="$OPTARG"
       ;;
     i)
       IN_DIR="$OPTARG"
@@ -104,10 +109,6 @@ function lc() {
   wc -l $1 | cut -d ' ' -f 1
 }
 
-echo "Starting VirSorter $(date)" 
-echo "IN_DIR   \"$IN_DIR\""      
-echo "OUT_DIR  \"$OUT_DIR\""      
-
 export PARAMS="$$.params"
 
 if [[ -e $PARAMS ]]; then
@@ -144,6 +145,18 @@ if [[ -n $OPT_SEQ ]]; then
   CUSTOM_PHAGE_ARG="--cp $OPT_SEQ"
 fi
 
+echo "IN_DIR            \"$IN_DIR\""      
+echo "OUT_DIR           \"$OUT_DIR\""      
+echo "CUSTOM_PHAGE_ARG  \"$CUSTOM_PHAGE_ARG\""
+echo "VIRSORTER_DB_DIR  \"$VIRSORTER_DB_DIR\""
+echo "DB_CHOICE         \"$DB_CHOICE\""
+echo "STEP_SIZE         \"$STEP_SIZE\""
+echo "JOB_TYPE          \"$JOB_TYPE\""
+echo "QUEUE             \"$QUEUE\""
+echo "JOB_NAME          \"$JOB_NAME\""
+echo "NUM_FILES         \"$NUM_FILES\""
+echo "GROUP_NAME        \"$GROUP_NAME\""
+
 export CUSTOM_PHAGE_ARG
 export IN_DIR
 export OUT_DIR
@@ -151,7 +164,7 @@ export VIRSORTER_DB_DIR
 export DB_CHOICE
 export STEP_SIZE
 
-JOB=$(qsub -q $QUEUE -N $JOB_NAME $ARGS -j oe -o $PBS_DIR -v PARAMS,STEP_SIZE,CUSTOM_PHAGE_ARG,IN_DIR,OUT_DIR,VIRSORTER_DB_DIR,DB_CHOICE run-virsorter.sh)
+JOB=$(qsub -l jobtype=$JOB_TYPE -q $QUEUE -N $JOB_NAME $ARGS -j oe -o $PBS_DIR -v PARAMS,STEP_SIZE,CUSTOM_PHAGE_ARG,IN_DIR,OUT_DIR,VIRSORTER_DB_DIR,DB_CHOICE run-virsorter.sh)
 
 if [ $? -eq 0 ]; then
   echo Submitted job \"$JOB.\"

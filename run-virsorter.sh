@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#PBS -l jobtype=cluster_only
-#PBS -l select=1:ncpus=16:mem=10gb
+#PBS -l select=1:ncpus=16:mem=23gb
 #PBS -l walltime=24:00:00
 #PBS -l cput=24:00:00
 
