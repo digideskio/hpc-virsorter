@@ -1,12 +1,16 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=16:mem=23gb
+#PBS -l select=1:ncpus=12:mem=10gb
 #PBS -l walltime=24:00:00
 #PBS -l cput=24:00:00
 
 set -u
 
 # --------------------------------------------------
+function lc() {
+  wc -l $1 | cut -d ' ' -f 1
+}
+
 function get_lines() {
  FILE=$1
  OUT_FILE=$2
@@ -43,13 +47,15 @@ NUM_FILES=$(lc $TMP_FILES)
 echo $(date)
 echo Processing \"$NUM_FILES\" input files
 
-VIRSORTER="VirSorter/wrapper_phage_contigs_sorter_iPlant.pl"
+export PATH=$BIN/bin:$PATH
+VIRSORTER="$BIN/VirSorter/wrapper_phage_contigs_sorter_iPlant.pl"
 
 i=0
 while read FILE; do
   let i++
-  printf "%3d: %s\n" $i $(basename $FILE)
-  echo "$VIRSORTER -f $FILE --db $DB_CHOICE --wdir $OUT_DIR --data-dir $VIRSORTER_DB_DIR $CUSTOM_PHAGE_ARG"
+  BASENAME=$(basename $FILE)
+  printf "%3d: %s\n" $i $BASENAME
+  $VIRSORTER -f $FILE --db $DB_CHOICE --wdir $OUT_DIR/$BASENAME --data-dir $VIRSORTER_DB_DIR --ncpu ${NUM_CPU:-12} $CUSTOM_PHAGE_ARG
 done < $TMP_FILES
 
 echo $(date)
